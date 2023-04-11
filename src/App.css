@@ -7,10 +7,58 @@
   pointer-events: none;
 }
 
+/* .shivanshu{
+  margin-top: -30px;
+  padding-top: 20px;
+  background: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,1)),url(./Components/newsPage.png);
+  background-position: center;
+  background-size: cover;
+} */
+            
+.card-title{
+  font-weight: 600;
+}
+
+.card-title:hover{
+ color: #0d6efd;
+  cursor: pointer;
+}
+
+.nav-link{
+  /* color: black; */
+  font-size: 18px;
+  /* font-weight: bold;
+  font-style: italic; */
+
+}
+.nav-link:hover{
+  color: white;
+  font-size: 20px;
+}
+
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+
+.container{
+  margin-top: 25px;
+}
+
+/* h1{
+  width: 54%;
+} */
+nav{
+        /* background-color: rgb(61, 45, 45); */
+       background-color: #0d0606a8;
+}
+
+.navbar-brand{
+  color: whitesmoke;
+    font-weight: bold;
+  font-style: italic;
 }
 
 .App-header {

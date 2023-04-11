@@ -1,136 +1,115 @@
-import React, { Component } from "react";
+import React, { useState , useEffect } from "react";
 import PropTypes from "prop-types";
 import NewsItem from "./NewsItem";
 import Spinner from './Spinner'
+import InfiniteScroll from "react-infinite-scroll-component";
+              
+ const News=(props)=> {
+  const [articles, setArticles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(-1)
+  const [totalResults, setTotalResults] = useState(0)
+  
+ const capitalizeFirstLetter=(string)=>{
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+          
+    // Title will change according to the category we are reading and a function is used which will make the first letter capital.
+      document.title=`${capitalizeFirstLetter(props.category)} -NewsApp`;
+  
+                                                                                                
+// we have created an updation function which can be used in previous and forward page 
+const updation = async()=> {
+  props.setProgress(30);
+  setPage(2);
+  let url =
+    `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=e8adac170d874fd296098e16fed2f214&page=${page}&pageSize=${props.pageSize}`;     
+    
+// let url = `https://gnews.io/api/v4/top-headlines?country=${props.country}&lang=en&topic=${props.category}&token=c59ec6468a508ce0f6e69e1efabcd08e&page=${page}&pagesize=${props.pagesize}`;
+  
+setLoading(true);
+  let data = await fetch(url);
+  // props.setProgress(30);
+  // console.log(data);
+  let parsedData = await data.json();
+  props.setProgress(70);
+  // console.log(parsedData);
+  setArticles(parsedData.articles)
+  setTotalResults(parsedData.totalResults)
+  setLoading(false)
+  props.setProgress(100);
+};
+                     
 
-export class News extends Component {
-
-  static defaultProps={
-        country:"in",
-        pageSize:8,
-        category: 'general',
-  }
-  static propTypes={
- country: PropTypes.string,
- pageSize:PropTypes.number,
- category: PropTypes.string,
-  }
-
-  constructor() {
-    // Object is passed below, then only constructor will work.
-    super();
-    console.log("This is constructor from NewsItems");
-    //"state" Object is created again
-    this.state = {
-      articles: [],
-      loading: false,
-      page: 1,
-    };
-  }
-
-  // API FETCH
-  async componentDidMount() {
-    let url =
-      `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=e8adac170d874fd296098e16fed2f214&page=1&pageSize=${this.props.pageSize}`;
-      this.setState({loading:true});
-    let data = await fetch(url);
-    let parsedData = await data.json();
-    console.log(parsedData);
-    this.setState({
-      articles: parsedData.articles,
-      totalResults: parsedData.totalResults,
-      loading:false
-    });
-  }
-
-  // Move Back
-  moveToBack = async () => {
-    console.log("BACK");
-    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=e8adac170d874fd296098e16fed2f214&page=${
-      this.state.page - 1
-    }&pageSize=${this.props.pageSize}`;
-     this.setState({loading:true});
-    let data = await fetch(url);
-    let parsedData = await data.json();
-    // console.log(parsedData);
-    this.setState({
-      page: this.state.page - 1,
-      articles: parsedData.articles,
-      loading:false
-    });
-  };
-
-  // Move Next
-  moveToNext = async () => {
-    console.log("NEXT");
-    // Math ceil will give the round off or integer value of the next bigger number
-    if (this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize)) {
-    } 
-    else {
-      let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=e8adac170d874fd296098e16fed2f214&page=${
-        this.state.page + 1
-      }&pageSize=${this.props.pageSize}`;
-      this.setState({loading:true});
-      let data = await fetch(url);
-      let parsedData = await data.json();
-      console.log(parsedData.articles);
-      this.setState({
-        page: this.state.page + 1,
-        articles: parsedData.articles,
-        loading:false
-      });
-    }
-  };
-
-  render() {
-    return (
-      <div className="container my-3">
-        <h1 className="text-center my-4">
+  useEffect(() => {
+    updation(); 
+}, [])
+                                                      
+const fetchMoreData = async () =>{
+  setPage(page+1);
+  let url =
+   `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=e8adac170d874fd296098e16fed2f214&page=${page}&pageSize=${props.pageSize}`;
+   
+  // let url = `https://gnews.io/api/v4/top-headlines?country=${props.country}&lang=en&topic=${props.category}&token=c59ec6468a508ce0f6e69e1efabcd08e&page=${page}&pagesize=${props.pagesize}`;
+ 
+  let data = await fetch(url);
+ let parsedData = await data.json();
+   setArticles(articles.concat(parsedData.articles))
+   setTotalResults(parsedData.totalResults)
+   // setloading(false)
+ };
+                           
+                                     
+   return (
+      <>
+        <h1 className="text-center my-23" style={{marginTop:'96px'}}>
           {" "}
-          <strong>Our NewsApp-Top headlines</strong>{" "}
-         {this.state.loading &&<Spinner/>}
+          <strong style={{fontStyle:'italic', fontSize:'41px'}} >Top Headlines on- {capitalizeFirstLetter(props.category)}</strong>{" "}
         </h1>
-        <div className="row">
-          {/* When we use higher order arrays maping, we generally use key to differentiate all the elements AND 
-    The slice() method returns selected elements in an array, as a new array.*/}
-          {!this.state.loading && this.state.articles.map((element) => {
+        {loading &&<Spinner/>}
+        {/* {<Spinner/>} */}
+        <InfiniteScroll
+          dataLength={articles}
+          next={fetchMoreData}
+          hasMore={articles.length!==totalResults}
+          loader={<Spinner/>}
+        >
+        <div className="container"  style={{paddingTop:'24'}}>
+        <div className="row" style={{paddingTop:'24'}}>
+          {articles.map((element) => {
             return (
               <div className="col-md-4 my-2" key={element.url}>
-                <NewsItem
+                <NewsItem 
                   title={element.title ? element.title.slice(0, 50) : ""}
-                  description={
-                    element.description ? element.description.slice(0, 190) : ""
-                  }
+                  description={ element.description ? element.description.slice(0, 190) : ""}
                   imageUrl={element.urlToImage}
                   newsURL={element.url}
+                  author={element.author}
+                  date = {element.publishedAt}
+                  name = {element.source.name}
                 />
-              </div>
+                  </div>
             );
           })}
+              </div>
         </div>
-        <div className="container d-flex justify-content-between">
-          <button
-            disabled={this.state.page <= 1}
-            type="button"
-            className="btn btn-dark"
-            onClick={this.moveToBack}
-          >
-            &larr; Back
-          </button>
-          <button
-            disabled={
-              this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize)
-            }
-            type="button"
-            className="btn btn-dark"
-            onClick={this.moveToNext}
-          >
-            Next &rarr;
-          </button>
-        </div>
-      </div>
+        </InfiniteScroll>
+        </>
     );
-  }
+  
+      
+News.defaultProps={
+  country:"in",
+  pageSize:8,
+  category: 'general',
+}
+                                            
+News.propTypes={
+country: PropTypes.string,
+pageSize:PropTypes.number,
+category: PropTypes.string,
+}
+
 }
 
 export default News;
